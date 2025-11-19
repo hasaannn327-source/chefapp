@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA Debug Tool</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .check-item {
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-left: 4px solid #ddd;
+    }
+
+    .check-item.success {
+      border-left-color: #4CAF50;
+      background: #f1f8f4;
+    }
+
+    .check-item.error {
+      border-left-color: #f44336;
+      background: #fef1f0;
+    }
+
+    .check-item.warning {
+      border-left-color: #ff9800;
+      background: #fff8f0;
+    }
+
+    .check-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .check-detail {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+      font-family: 'Courier New', monospace;
+    }
+
+    .icon {
+      font-size: 20px;
+    }
+
+    .button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+
+    .code-block {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 12px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 PWA Debug Tool</h1>
+    <p class="subtitle">Chef App PWA durumunu kontrol ediliyor...</p>
+    
+    <div id="results" class="loading">
+      <p>Kontroller yapılıyor...</p>
+    </div>
+
+    <button class="button" onclick="runChecks()">Tekrar Kontrol Et</button>
+  </div>
+
+  <script>
+    const results = [];
+
+    function addResult(title, status, detail) {
+      results.push({ title, status, detail });
+    }
+
+    async function checkHTTPS() {
+      const isHTTPS = window.location.protocol === 'https:';
+      addResult(
+        'HTTPS Protokolü',
+        isHTTPS ? 'success' : 'error',
+        isHTTPS ? '✅ Site HTTPS üzerinden çalışıyor' : '❌ Site HTTP üzerinden çalışıyor. PWA için HTTPS gerekli!'
+      );
+    }
+
+    async function checkManifest() {
+      try {
+        const response = await fetch('/manifest.json');
+        if (response.ok) {
+          const manifest = await response.json();
+          const hasName = manifest.name || manifest.short_name;
+          const hasIcons = manifest.icons && manifest.icons.length >= 2;
+          const has192 = manifest.icons?.some(i => i.sizes === '192x192');
+          const has512 = manifest.icons?.some(i => i.sizes === '512x512');
+          const hasStartUrl = manifest.start_url;
+          const hasDisplay = manifest.display === 'standalone';
+
+          let issues = [];
+          if (!hasName) issues.push('name/short_name eksik');
+          if (!hasIcons) issues.push('icons eksik');
+          if (!has192) issues.push('192x192 ikon eksik');
+          if (!has512) issues.push('512x512 ikon eksik');
+          if (!hasStartUrl) issues.push('start_url eksik');
+          if (!hasDisplay) issues.push('display: standalone eksik');
+
+          addResult(
+            'Manifest Dosyası',
+            issues.length === 0 ? 'success' : 'warning',
+            issues.length === 0 
+              ? '✅ manifest.json bulundu ve geçerli' 
+              : `⚠️ manifest.json bulundu ama sorunlar var: ${issues.join(', ')}\n\nManifest içeriği:\n${JSON.stringify(manifest, null, 2)}`
+          );
+        } else {
+          addResult('Manifest Dosyası', 'error', '❌ manifest.json bulunamadı (404)');
+        }
+      } catch (error) {
+        addResult('Manifest Dosyası', 'error', `❌ Hata: ${error.message}`);
+      }
+    }
+
+    async function checkServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.getRegistration();
+          if (registration) {
+            addResult(
+              'Service Worker',
+              'success',
+              `✅ Service Worker kayıtlı\nScope: ${registration.scope}\nState: ${registration.active?.state || 'installing'}`
+            );
+          } else {
+            addResult(
+              'Service Worker',
+              'warning',
+              '⚠️ Service Worker kayıtlı değil. service-worker.js dosyası var mı ve kayıt kodu çalışıyor mu?'
+            );
+          }
+        } catch (error) {
+          addResult('Service Worker', 'error', `❌ Hata: ${error.message}`);
+        }
+      } else {
+        addResult('Service Worker', 'error', '❌ Tarayıcı Service Worker desteklemiyor');
+      }
+    }
+
+    async function checkIcons() {
+      const iconTests = [
+        { size: '192x192', path: '/icon-192x192.png' },
+        { size: '512x512', path: '/icon-512x512.png' }
+      ];
+
+      for (const icon of iconTests) {
+        try {
+          const response = await fetch(icon.path, { method: 'HEAD' });
+          addResult(
+            `İkon ${icon.size}`,
+            response.ok ? 'success' : 'error',
+            response.ok 
+              ? `✅ ${icon.path} bulundu` 
+              : `❌ ${icon.path} bulunamadı (${response.status})`
+          );
+        } catch (error) {
+          addResult(`İkon ${icon.size}`, 'error', `❌ ${icon.path} yüklenemedi: ${error.message}`);
+        }
+      }
+    }
+
+    function checkInstallPrompt() {
+      const hasPromptHandler = window.hasOwnProperty('deferredPrompt') || 
+                               document.getElementById('installButton');
+      
+      addResult(
+        'Install Prompt Handler',
+        hasPromptHandler ? 'success' : 'warning',
+        hasPromptHandler 
+          ? '✅ beforeinstallprompt event handler hazır' 
+          : '⚠️ pwa-install.js yüklenmemiş olabilir'
+      );
+    }
+
+    function checkDisplayMode() {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                          window.navigator.standalone ||
+                          document.referrer.includes('android-app://');
+      
+      addResult(
+        'Display Mode',
+        'success',
+        isStandalone 
+          ? '✅ Uygulama standalone modda çalışıyor (zaten yüklü)' 
+          : 'ℹ️ Uygulama tarayıcıda açık (henüz yüklenmemiş)'
+      );
+    }
+
+    function checkUserAgent() {
+      const ua = navigator.userAgent;
+      const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor);
+      const isEdge = /Edg/.test(ua);
+      const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+      const isFirefox = /Firefox/.test(ua);
+      
+      let browser = 'Bilinmeyen';
+      if (isChrome) browser = 'Chrome';
+      if (isEdge) browser = 'Edge';
+      if (isSafari) browser = 'Safari';
+      if (isFirefox) browser = 'Firefox';
+      
+      addResult(
+        'Tarayıcı',
+        'success',
+        `ℹ️ ${browser}\n\n${navigator.userAgent}`
+      );
+    }
+
+    function displayResults() {
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+      container.classList.remove('loading');
+
+      results.forEach(result => {
+        const div = document.createElement('div');
+        div.className = `check-item ${result.status}`;
+        div.innerHTML = `
+          <div class="check-title">
+            <span class="icon">${result.status === 'success' ? '✅' : result.status === 'error' ? '❌' : '⚠️'}</span>
+            ${result.title}
+          </div>
+          <div class="check-detail">${result.detail.replace(/\n/g, '<br>')}</div>
+        `;
+        container.appendChild(div);
+      });
+
+      // Özet
+      const summary = document.createElement('div');
+      const successCount = results.filter(r => r.status === 'success').length;
+      const errorCount = results.filter(r => r.status === 'error').length;
+      const warningCount = results.filter(r => r.status === 'warning').length;
+      
+      summary.className = `check-item ${errorCount > 0 ? 'error' : warningCount > 0 ? 'warning' : 'success'}`;
+      summary.innerHTML = `
+        <div class="check-title">📊 Özet</div>
+        <div class="check-detail">
+          ✅ Başarılı: ${successCount}<br>
+          ⚠️ Uyarı: ${warningCount}<br>
+          ❌ Hata: ${errorCount}
+        </div>
+      `;
+      container.appendChild(summary);
+
+      // Öneriler
+      if (errorCount > 0 || warningCount > 0) {
+        const suggestions = document.createElement('div');
+        suggestions.className = 'check-item warning';
+        suggestions.innerHTML = `
+          <div class="check-title">💡 Öneriler</div>
+          <div class="check-detail">
+            1. Tüm dosyaların /public klasöründe olduğundan emin olun<br>
+            2. Vercel'e deploy ettikten sonra 5-10 dakika bekleyin<br>
+            3. Chrome'da Ctrl+Shift+R ile hard refresh yapın<br>
+            4. Chrome DevTools → Application → Clear Storage → "Clear site data"<br>
+            5. Tarayıcıyı kapatıp tekrar açın<br>
+            6. Mobil cihazda test edin (masaüstünde bazen görünmez)
+          </div>
+        `;
+        container.appendChild(suggestions);
+      }
+    }
+
+    async function runChecks() {
+      results.length = 0;
+      document.getElementById('results').innerHTML = '<p class="loading">Kontroller yapılıyor...</p>';
+      
+      await checkHTTPS();
+      await checkManifest();
+      await checkServiceWorker();
+      await checkIcons();
+      checkInstallPrompt();
+      checkDisplayMode();
+      checkUserAgent();
+      
+      displayResults();
+    }
+
+    // Sayfa yüklendiğinde otomatik kontrol
+    runChecks();
+  </script>
+</body>
+</html>
