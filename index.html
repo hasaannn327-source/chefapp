@@ -5,169 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Al Bunu Pişir</title>
     
-    <!-- PWA ZORUNLU ETİKETLER -->
+    <!-- PWA BAĞLANTILARI (Vite public klasöründen otomatik alır) -->
+    <!-- Dosyalar public içinde olsa bile buraya başında / ile yazılır -->
     <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
     <meta name="theme-color" content="#e63946">
-    
-    <!-- iOS İÇİN İKON VE AYARLAR -->
-    <link rel="apple-touch-icon" href="/public/icon-192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- TAILWIND CSS (Tasarım İçin) -->
+    <!-- TASARIM KÜTÜPHANELERİ -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- İKON KÜTÜPHANESİ -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         body {
             background-color: #f3f4f6;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent; /* Mobilde tıklama efektini düzeltir */
+            -webkit-tap-highlight-color: transparent;
         }
-        .recipe-card {
-            transition: all 0.3s ease;
-        }
-        .active-btn:active {
-            transform: scale(0.95);
-        }
+        .recipe-card { transition: all 0.3s ease; }
+        .active-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="flex flex-col h-screen">
 
-    <!-- ÜST BAŞLIK (HEADER) -->
+    <!-- BAŞLIK -->
     <header class="bg-[#e63946] text-white p-4 shadow-lg sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-utensils text-xl"></i>
                 <h1 class="text-xl font-bold tracking-wide">Al Bunu Pişir</h1>
             </div>
-            <!-- Kurulum Butonu (Javascript ile gizlenip/açılacak) -->
             <button id="installBtn" class="hidden bg-white text-[#e63946] px-3 py-1 rounded-full text-sm font-bold shadow-md active-btn">
                 <i class="fa-solid fa-download mr-1"></i> Yükle
             </button>
         </div>
     </header>
 
-    <!-- ANA İÇERİK -->
+    <!-- İÇERİK -->
     <main class="flex-1 container mx-auto p-4 overflow-y-auto pb-20">
-        
-        <!-- Karşılama / Hero Alanı -->
         <div class="text-center mb-8 mt-4">
             <h2 class="text-2xl font-bold text-gray-800 mb-2">Bugün Ne Pişirsem?</h2>
-            <p class="text-gray-600">Malzemelerini düşünme, butona bas ve şansına geleni pişir!</p>
+            <p class="text-gray-600">Kararsız kalma, butona bas ve pişirmeye başla!</p>
         </div>
 
-        <!-- Aksiyon Butonu -->
         <div class="flex justify-center mb-8">
-            <button onclick="rastgeleTarifGetir()" class="bg-[#e63946] hover:bg-red-700 text-white text-lg font-bold py-4 px-8 rounded-2xl shadow-xl transform transition hover:-translate-y-1 active:translate-y-0 flex items-center gap-2 w-full max-w-xs justify-center active-btn">
-                <i class="fa-solid fa-shuffle"></i>
-                Tarif Öner
+            <button onclick="rastgeleTarifGetir()" class="bg-[#e63946] hover:bg-red-700 text-white text-lg font-bold py-4 px-8 rounded-2xl shadow-xl w-full max-w-xs flex items-center justify-center gap-2 active-btn">
+                <i class="fa-solid fa-shuffle"></i> Tarif Öner
             </button>
         </div>
 
-        <!-- Sonuç Kartı (Başlangıçta Gizli) -->
         <div id="sonucAlani" class="hidden">
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden recipe-card max-w-md mx-auto">
                 <div class="h-48 bg-gray-200 relative">
-                    <img id="yemekResmi" src="" alt="Yemek" class="w-full h-full object-cover">
-                    <div class="absolute top-2 right-2 bg-white px-2 py-1 rounded-lg shadow text-sm font-bold text-[#e63946]">
-                        <i class="fa-regular fa-clock"></i> <span id="sure">30 dk</span>
-                    </div>
+                    <img id="yemekResmi" src="" class="w-full h-full object-cover">
                 </div>
                 <div class="p-6">
-                    <h3 id="yemekAdi" class="text-2xl font-bold text-gray-800 mb-2">Yemek Adı</h3>
-                    <div class="flex gap-2 mb-4">
-                        <span class="bg-orange-100 text-orange-600 px-2 py-0.5 rounded text-xs font-bold">Kolay</span>
-                        <span class="bg-green-100 text-green-600 px-2 py-0.5 rounded text-xs font-bold">Sağlıklı</span>
-                    </div>
-                    <p id="malzemeler" class="text-gray-600 leading-relaxed text-sm">
-                        Malzemeler buraya gelecek...
-                    </p>
-                    <button class="mt-4 w-full border-2 border-[#e63946] text-[#e63946] font-bold py-2 rounded-xl hover:bg-red-50 active-btn">
-                        Tarifi Görüntüle
-                    </button>
+                    <h3 id="yemekAdi" class="text-2xl font-bold text-gray-800 mb-2">Yemek İsmi</h3>
+                    <p id="malzemeler" class="text-gray-600 text-sm leading-relaxed">Malzemeler...</p>
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- ALT MENÜ (Mobil Uygulama Hissi İçin) -->
-    <nav class="bg-white border-t border-gray-200 fixed bottom-0 w-full pb-safe">
-        <div class="flex justify-around p-3 text-gray-400">
-            <button class="flex flex-col items-center text-[#e63946]">
-                <i class="fa-solid fa-house text-xl mb-1"></i>
-                <span class="text-xs">Ana Sayfa</span>
-            </button>
-            <button class="flex flex-col items-center hover:text-[#e63946]">
-                <i class="fa-solid fa-heart text-xl mb-1"></i>
-                <span class="text-xs">Favoriler</span>
-            </button>
-            <button class="flex flex-col items-center hover:text-[#e63946]">
-                <i class="fa-solid fa-user text-xl mb-1"></i>
-                <span class="text-xs">Profil</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- SCRIPTS -->
+    <!-- JAVASCRIPT -->
     <script>
-        // Örnek Veriler (Veritabanı olmadığı için)
-        const yemekler = [
-            { ad: "Mercimek Çorbası", sure: "20 dk", resim: "https://images.unsplash.com/photo-1547592166-23acbe3b624b?auto=format&fit=crop&w=600&q=80", malzeme: "Kırmızı mercimek, soğan, havuç, patates." },
-            { ad: "Karnıyarık", sure: "45 dk", resim: "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=600&q=80", malzeme: "Patlıcan, kıyma, soğan, biber, domates sosu." },
-            { ad: "Tavuk Sote", sure: "30 dk", resim: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=600&q=80", malzeme: "Tavuk göğsü, yeşil biber, domates, baharatlar." },
-            { ad: "Makarna Salatası", sure: "15 dk", resim: "https://images.unsplash.com/photo-1551462147-37885acc36f1?auto=format&fit=crop&w=600&q=80", malzeme: "Makarna, yoğurt, mayonez, garnitür, mısır." }
-        ];
-
-        function rastgeleTarifGetir() {
-            const rastgele = yemekler[Math.floor(Math.random() * yemekler.length)];
-            
-            document.getElementById('yemekAdi').innerText = rastgele.ad;
-            document.getElementById('sure').innerText = rastgele.sure;
-            document.getElementById('malzemeler').innerText = rastgele.malzeme;
-            document.getElementById('yemekResmi').src = rastgele.resim;
-            
-            const sonucAlani = document.getElementById('sonucAlani');
-            sonucAlani.classList.remove('hidden');
-            
-            // Hafif bir animasyon efekti
-            sonucAlani.classList.add('animate-pulse');
-            setTimeout(() => sonucAlani.classList.remove('animate-pulse'), 500);
-        }
-
-        // --- PWA SERVICE WORKER KAYDI (KRİTİK KISIM) ---
+        // --- PWA SERVICE WORKER KAYDI ---
+        // Dosya public içinde ama Vite onu ana dizine ('/sw.js') koyar.
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('SW Kaydedildi:', reg.scope))
+                    .then(reg => console.log('SW Hazır:', reg.scope))
                     .catch(err => console.log('SW Hatası:', err));
             });
         }
 
-        // --- "ANA EKRANA EKLE" BUTONU MANTIĞI ---
+        // --- YÜKLE BUTONU MANTIĞI ---
         let deferredPrompt;
         const installBtn = document.getElementById('installBtn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            installBtn.classList.remove('hidden'); // Butonu göster
+            installBtn.classList.remove('hidden');
         });
 
-        installBtn.addEventListener('click', (e) => {
+        installBtn.addEventListener('click', async () => {
             installBtn.classList.add('hidden');
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('Kullanıcı yüklemeyi kabul etti');
-                }
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
                 deferredPrompt = null;
-            });
+            }
         });
+
+        // --- TARİF MANTIĞI ---
+        const yemekler = [
+            { ad: "Mercimek Çorbası", resim: "https://images.unsplash.com/photo-1547592166-23acbe3b624b?w=600", malzeme: "Mercimek, soğan, havuç, patates, yağ, tuz." },
+            { ad: "Karnıyarık", resim: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=600", malzeme: "Patlıcan, kıyma, soğan, biber, domates, sarımsak." },
+            { ad: "Tavuk Sote", resim: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600", malzeme: "Tavuk göğsü, biber, domates, soğan, baharatlar." },
+            { ad: "Menemen", resim: "https://images.unsplash.com/photo-1626132647523-66f5bf380027?w=600", malzeme: "Yumurta, domates, biber, sıvı yağ, tuz." }
+        ];
+
+        function rastgeleTarifGetir() {
+            const secilen = yemekler[Math.floor(Math.random() * yemekler.length)];
+            document.getElementById('yemekAdi').innerText = secilen.ad;
+            document.getElementById('malzemeler').innerText = secilen.malzeme;
+            document.getElementById('yemekResmi').src = secilen.resim;
+            
+            const alan = document.getElementById('sonucAlani');
+            alan.classList.remove('hidden');
+            alan.classList.add('animate-pulse');
+            setTimeout(() => alan.classList.remove('animate-pulse'), 500);
+        }
     </script>
 </body>
 </html>
-
