@@ -11,8 +11,7 @@ export default defineConfig({
       devOptions: {
         enabled: true
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
-      manifest: {
+      includeAssets: ['icon-192x192.png', 'icon-512x512.png'],
         name: 'Al Bunu Pişir',
         short_name: 'AlBunuPisir',
         description: 'Yapay zeka destekli mutfak asistanınız',
