@@ -1,120 +1,36 @@
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Al Bunu Pişir</title>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chef App</title>
     
-    <!-- PWA BAĞLANTILARI (Vite public klasöründen otomatik alır) -->
-    <!-- Dosyalar public içinde olsa bile buraya başında / ile yazılır -->
+    <!-- PWA İÇİN EKLENECEK KISIMLAR BURADA -->
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon-192.png">
     <meta name="theme-color" content="#e63946">
+    <!-- ------------------------------- -->
 
-    <!-- TASARIM KÜTÜPHANELERİ -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  </head>
+  <body>
+    <!-- React/Vue Uygulamanın Gömüleceği Yer -->
+    <div id="root"></div>
 
-    <style>
-        body {
-            background-color: #f3f4f6;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .recipe-card { transition: all 0.3s ease; }
-        .active-btn:active { transform: scale(0.95); }
-    </style>
-</head>
-<body class="flex flex-col h-screen">
+    <!-- SENİN PROJENİN ANA DOSYASI (Burası çok önemli) -->
+    <!-- Eğer dosyan src/main.jsx ise buna dokunma. src/main.js ise uzantıyı düzelt. -->
+    <script type="module" src="/src/main.jsx"></script>
 
-    <!-- BAŞLIK -->
-    <header class="bg-[#e63946] text-white p-4 shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-utensils text-xl"></i>
-                <h1 class="text-xl font-bold tracking-wide">Al Bunu Pişir</h1>
-            </div>
-            <button id="installBtn" class="hidden bg-white text-[#e63946] px-3 py-1 rounded-full text-sm font-bold shadow-md active-btn">
-                <i class="fa-solid fa-download mr-1"></i> Yükle
-            </button>
-        </div>
-    </header>
-
-    <!-- İÇERİK -->
-    <main class="flex-1 container mx-auto p-4 overflow-y-auto pb-20">
-        <div class="text-center mb-8 mt-4">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Bugün Ne Pişirsem?</h2>
-            <p class="text-gray-600">Kararsız kalma, butona bas ve pişirmeye başla!</p>
-        </div>
-
-        <div class="flex justify-center mb-8">
-            <button onclick="rastgeleTarifGetir()" class="bg-[#e63946] hover:bg-red-700 text-white text-lg font-bold py-4 px-8 rounded-2xl shadow-xl w-full max-w-xs flex items-center justify-center gap-2 active-btn">
-                <i class="fa-solid fa-shuffle"></i> Tarif Öner
-            </button>
-        </div>
-
-        <div id="sonucAlani" class="hidden">
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden recipe-card max-w-md mx-auto">
-                <div class="h-48 bg-gray-200 relative">
-                    <img id="yemekResmi" src="" class="w-full h-full object-cover">
-                </div>
-                <div class="p-6">
-                    <h3 id="yemekAdi" class="text-2xl font-bold text-gray-800 mb-2">Yemek İsmi</h3>
-                    <p id="malzemeler" class="text-gray-600 text-sm leading-relaxed">Malzemeler...</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- JAVASCRIPT -->
+    <!-- PWA BAŞLATICI KOD -->
     <script>
-        // --- PWA SERVICE WORKER KAYDI ---
-        // Dosya public içinde ama Vite onu ana dizine ('/sw.js') koyar.
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('SW Hazır:', reg.scope))
-                    .catch(err => console.log('SW Hatası:', err));
-            });
-        }
-
-        // --- YÜKLE BUTONU MANTIĞI ---
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.classList.remove('hidden');
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('SW OK'))
+            .catch(err => console.log('SW Fail', err));
         });
-
-        installBtn.addEventListener('click', async () => {
-            installBtn.classList.add('hidden');
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt = null;
-            }
-        });
-
-        // --- TARİF MANTIĞI ---
-        const yemekler = [
-            { ad: "Mercimek Çorbası", resim: "https://images.unsplash.com/photo-1547592166-23acbe3b624b?w=600", malzeme: "Mercimek, soğan, havuç, patates, yağ, tuz." },
-            { ad: "Karnıyarık", resim: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=600", malzeme: "Patlıcan, kıyma, soğan, biber, domates, sarımsak." },
-            { ad: "Tavuk Sote", resim: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600", malzeme: "Tavuk göğsü, biber, domates, soğan, baharatlar." },
-            { ad: "Menemen", resim: "https://images.unsplash.com/photo-1626132647523-66f5bf380027?w=600", malzeme: "Yumurta, domates, biber, sıvı yağ, tuz." }
-        ];
-
-        function rastgeleTarifGetir() {
-            const secilen = yemekler[Math.floor(Math.random() * yemekler.length)];
-            document.getElementById('yemekAdi').innerText = secilen.ad;
-            document.getElementById('malzemeler').innerText = secilen.malzeme;
-            document.getElementById('yemekResmi').src = secilen.resim;
-            
-            const alan = document.getElementById('sonucAlani');
-            alan.classList.remove('hidden');
-            alan.classList.add('animate-pulse');
-            setTimeout(() => alan.classList.remove('animate-pulse'), 500);
-        }
+      }
     </script>
-</body>
+  </body>
 </html>
+
+
