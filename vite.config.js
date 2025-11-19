@@ -6,15 +6,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // Service Worker'ı otomatik kaydet
       registerType: 'autoUpdate',
-      // HTML içine gerekli scriptleri otomatik ekle
       injectRegister: 'auto',
-      // Geliştirme modunda da PWA'yı test edebilmek için (Normalde sadece build'de çalışır)
       devOptions: {
         enabled: true
       },
-      // Önbelleğe alınacak dosyalar
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'Al Bunu Pişir',
@@ -28,17 +24,19 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png', // Dosya adlarına dikkat!
+            // BURAYI DİKKATLİCE KONTROL ET:
+            // Senin dosyanın adı 'icon-192x192.png' ise burası da aynısı olmalı.
+            src: 'icon-192x192.png', 
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'icon-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
@@ -48,7 +46,5 @@ export default defineConfig({
     })
   ],
 })
-
-
 
 
