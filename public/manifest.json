@@ -21,22 +21,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "categories": ["food", "lifestyle", "productivity"],
-  "screenshots": [
-    {
-      "src": "/screenshot1.png",
-      "sizes": "540x720",
-      "type": "image/png"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Yeni Tarif",
-      "short_name": "Yeni",
-      "description": "Yeni tarif oluştur",
-      "url": "/new",
-      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
-    }
   ]
 }
